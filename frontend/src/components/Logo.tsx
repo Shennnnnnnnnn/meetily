@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { VisuallyHidden } from "./ui/visually-hidden";
 import { About } from "./About";
+import { useI18n } from '@/i18n';
 
 interface LogoProps {
   isCollapsed: boolean;
@@ -10,6 +11,7 @@ interface LogoProps {
 
 const Logo = React.forwardRef<HTMLButtonElement, LogoProps>(
   ({ isCollapsed }, ref) => {
+    const { t } = useI18n();
     return (
       <Dialog aria-describedby={undefined}>
         {isCollapsed ? (
@@ -18,11 +20,11 @@ const Logo = React.forwardRef<HTMLButtonElement, LogoProps>(
               ref={ref}
               type="button"
               className="flex items-center justify-center mb-2 cursor-pointer bg-transparent border-none p-0 hover:opacity-80 transition-opacity"
-              aria-label="About Meetily"
+              aria-label={t('logo.about')}
             >
               <Image
                 src="/logo-collapsed.png"
-                alt="Meetily"
+                alt={t('logo.about')}
                 width={40}
                 height={40}
                 className="object-contain"
@@ -36,7 +38,7 @@ const Logo = React.forwardRef<HTMLButtonElement, LogoProps>(
               ref={ref}
               type="button"
               className="w-full text-lg text-center border rounded-full bg-blue-50 border-white font-semibold text-gray-700 mb-2 block items-center cursor-pointer hover:opacity-80 transition-opacity focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              aria-label="About Meetily"
+              aria-label={t('logo.about')}
             >
               <span>Meetily</span>
             </button>
@@ -44,7 +46,7 @@ const Logo = React.forwardRef<HTMLButtonElement, LogoProps>(
         )}
         <DialogContent>
           <VisuallyHidden>
-            <DialogTitle>About Meetily</DialogTitle>
+            <DialogTitle>{t('about.aboutMeetily')}</DialogTitle>
           </VisuallyHidden>
           <About />
         </DialogContent>

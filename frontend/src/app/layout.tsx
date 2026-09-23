@@ -25,6 +25,7 @@ import { RecordingPostProcessingProvider } from '@/contexts/RecordingPostProcess
 import { ImportAudioDialog, ImportDropOverlay } from '@/components/ImportAudio'
 import { ImportDialogProvider } from '@/contexts/ImportDialogContext'
 import { isAudioExtension, getAudioFormatsDisplayList } from '@/constants/audioFormats'
+import { I18nProvider } from '@/i18n'
 
 
 const sourceSans3 = Source_Sans_3({
@@ -231,9 +232,10 @@ export default function RootLayout({
   }
 
   return (
-    <html lang="en">
+    <html lang="en-US">
       <body className={`${sourceSans3.variable} font-sans antialiased`}>
-        <AnalyticsProvider>
+        <I18nProvider>
+          <AnalyticsProvider>
           <RecordingStateProvider>
             <TranscriptProvider>
               <ConfigProvider>
@@ -274,7 +276,8 @@ export default function RootLayout({
               </ConfigProvider>
             </TranscriptProvider>
           </RecordingStateProvider>
-        </AnalyticsProvider>
+          </AnalyticsProvider>
+        </I18nProvider>
 
         <Toaster position="bottom-center" richColors closeButton />
       </body>

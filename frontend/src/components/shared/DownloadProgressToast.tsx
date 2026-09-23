@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { X, Download, Check, Loader2, ArrowBigDownDash } from 'lucide-react';
 import { getDownloadTotalMb } from '@/lib/onboarding-summary-model';
 import type { ParakeetDownloadProgressEvent } from '@/lib/parakeet';
+import { useI18n } from '@/i18n';
 
 interface DownloadProgress {
   modelName: string;
@@ -56,6 +57,7 @@ function DownloadToastContent({
   download: DownloadProgress;
   onDismiss?: () => void;
 }) {
+  const { t } = useI18n();
   const isComplete = download.status === 'completed';
   const hasError = download.status === 'error';
   const isCancelled = download.status === 'cancelled';
@@ -87,11 +89,11 @@ function DownloadToastContent({
         </div>
 
         {hasError ? (
-          <p className="text-xs text-red-600">{download.error || 'Download failed'}</p>
+          <p className="text-xs text-red-600">{download.error || t('model.failedLoad')}</p>
         ) : isComplete ? (
-          <p className="text-xs text-green-600">Download complete</p>
+          <p className="text-xs text-green-600">{t('model.downloadComplete')}</p>
         ) : isCancelled ? (
-          <p className="text-xs text-gray-600">Download cancelled</p>
+          <p className="text-xs text-gray-600">{t('model.downloadCancelled')}</p>
         ) : (
           <>
             {/* Progress bar */}

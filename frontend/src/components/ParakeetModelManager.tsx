@@ -12,6 +12,7 @@ import {
   getModelDisplayInfo,
   getModelDisplayName
 } from '../lib/parakeet';
+import { useI18n } from '@/i18n';
 
 interface ParakeetModelManagerProps {
   selectedModel?: string;
@@ -26,6 +27,7 @@ export function ParakeetModelManager({
   className = '',
   autoSave = false
 }: ParakeetModelManagerProps) {
+  const { t } = useI18n();
   const [models, setModels] = useState<ParakeetModelInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -390,7 +392,7 @@ export function ParakeetModelManager({
   if (error) {
     return (
       <div className={`bg-red-50 border border-red-200 rounded-lg p-4 ${className}`}>
-        <p className="text-sm text-red-800">Failed to load models</p>
+        <p className="text-sm text-red-800">{t('model.failedLoad')}</p>
         <p className="text-xs text-red-600 mt-1">{error}</p>
       </div>
     );
@@ -455,7 +457,7 @@ export function ParakeetModelManager({
           animate={{ opacity: 1, y: 0 }}
           className="text-xs text-gray-500 text-center pt-2"
         >
-          Using {getModelDisplayName(selectedModel)} for transcription
+          {t('model.usingForTranscription', { model: getModelDisplayName(selectedModel) })}
         </motion.div>
       )}
     </div>
@@ -486,6 +488,7 @@ function ModelCard({
   isDownloading,
   isCancelling
 }: ModelCardProps) {
+  const { t } = useI18n();
   const [isHovered, setIsHovered] = useState(false);
   const displayInfo = getModelDisplayInfo(model.name);
   const displayName = displayInfo?.friendlyName || model.name;
@@ -526,7 +529,7 @@ function ModelCard({
       {/* Recommended Badge */}
       {isRecommended && (
         <div className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full font-medium">
-          Recommended
+          {t('model.recommended')}
         </div>
       )}
 
@@ -558,7 +561,7 @@ function ModelCard({
               <>
                 <div className="flex items-center gap-1.5 text-green-600">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-xs font-medium">Ready</span>
+                  <span className="text-xs font-medium">{t('model.ready')}</span>
                 </div>
                 <AnimatePresence>
                   {isHovered && (
@@ -572,7 +575,7 @@ function ModelCard({
                         onDelete();
                       }}
                       className="text-gray-400 hover:text-red-600 transition-colors p-1"
-                      title="Delete model to free up space"
+                      title={t('model.deleteTitle')}
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -591,7 +594,7 @@ function ModelCard({
                 }}
                 className="bg-blue-600 text-white px-3 py-1.5 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
               >
-                Download
+                {t('model.download')}
               </button>
             )}
 
@@ -603,7 +606,7 @@ function ModelCard({
                 }}
                 className="bg-red-600 text-white px-3 py-1.5 rounded-md text-sm font-medium hover:bg-red-700 transition-colors"
               >
-                Retry
+                {t('model.retry')}
               </button>
             )}
 
@@ -616,7 +619,7 @@ function ModelCard({
                   }}
                   className="bg-orange-600 text-white px-3 py-1.5 rounded-md text-sm font-medium hover:bg-orange-700 transition-colors"
                 >
-                  Delete
+                  {t('model.delete')}
                 </button>
                 <button
                   onClick={(e) => {
@@ -625,7 +628,7 @@ function ModelCard({
                   }}
                   className="bg-blue-600 text-white px-3 py-1.5 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
                 >
-                  Re-download
+                  {t('model.redownload')}
                 </button>
               </div>
             )}
@@ -643,7 +646,7 @@ function ModelCard({
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-blue-600">
-                  {isCancelling ? 'Cancelling…' : 'Downloading...'}
+                  {isCancelling ? t('model.cancelling') : t('model.downloading')}
                 </span>
                 {!isCancelling && (
                   <span className="text-sm font-semibold text-blue-600">
@@ -653,7 +656,7 @@ function ModelCard({
               </div>
               {isCancelling ? (
                 <span className="text-xs text-gray-500 font-medium px-2 py-1">
-                  Cancellation requested
+                  {t('model.cancelRequested')}
                 </span>
               ) : (
                 <button
@@ -662,9 +665,9 @@ function ModelCard({
                     onCancel();
                   }}
                   className="text-xs text-gray-600 hover:text-red-600 font-medium transition-colors px-2 py-1 rounded hover:bg-red-50"
-                  title="Cancel download"
+                  title={t('model.cancelDownload')}
                 >
-                  Cancel
+                  {t('model.cancel')}
                 </button>
               )}
             </div>
@@ -682,7 +685,7 @@ function ModelCard({
                   {formatFileSize(model.size_mb * displayedProgress / 100)} / {formatFileSize(model.size_mb)}
                 </>
               ) : (
-                'Downloading...'
+                t('model.downloading')
               )}
             </p>
           </motion.div>

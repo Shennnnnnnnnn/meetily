@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getSummaryModelSizeLabel, getSummaryModelSizeMb } from '@/lib/onboarding-summary-model';
 import type { ParakeetDownloadProgressEvent } from '@/lib/parakeet';
+import { useI18n } from '@/i18n';
 
 const PARAKEET_MODEL = 'parakeet-tdt-0.6b-v3-int8';
 
@@ -24,6 +25,7 @@ interface DownloadState {
 }
 
 export function DownloadProgressStep() {
+  const { t } = useI18n();
   const {
     goNext,
     selectedSummaryModel,
@@ -391,8 +393,8 @@ export function DownloadProgressStep() {
         window.location.reload();
       } catch (error) {
         console.error('Failed to complete onboarding:', error);
-        toast.error('Failed to complete setup', {
-          description: 'Please try again.',
+        toast.error(t('onboarding.completeFailed'), {
+          description: t('onboarding.tryAgainDescription'),
         });
         setIsCompleting(false);
       }
@@ -419,7 +421,7 @@ export function DownloadProgressStep() {
         </div>
         <div>
           {state.status === 'waiting' && (
-            <span className="text-sm text-gray-500">Waiting...</span>
+            <span className="text-sm text-gray-500">{t('common.waiting')}</span>
           )}
           {state.status === 'downloading' && (
             <Loader2 className="w-5 h-5 text-gray-700 animate-spin" />
@@ -430,10 +432,10 @@ export function DownloadProgressStep() {
             </div>
           )}
           {state.status === 'error' && (
-            <span className="text-sm text-red-500">Failed</span>
+            <span className="text-sm text-red-500">{t('common.failed')}</span>
           )}
           {state.status === 'cancelled' && (
-            <span className="text-sm text-gray-500">Cancelled</span>
+            <span className="text-sm text-gray-500">{t('common.cancelled')}</span>
           )}
         </div>
       </div>
@@ -468,19 +470,19 @@ export function DownloadProgressStep() {
       {(state.status === 'error' || state.status === 'cancelled') && (
         <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md">
           <p className="text-sm text-red-600 font-medium">
-            {state.status === 'cancelled' ? 'Download cancelled' : 'Download Error'}
+            {state.status === 'cancelled' ? t('model.downloadCancelled') : t('onboarding.downloadError')}
           </p>
           {state.error && <p className="text-xs text-red-500 mt-1">{state.error}</p>}
-          {(title === 'Transcription Engine' || title === 'Summary Engine') && (
+          {(title === t('onboarding.transcriptionEngine') || title === t('onboarding.summaryEngine')) && (
             <button
-              onClick={title === 'Transcription Engine' ? handleRetryDownload : handleRetrySummaryDownload}
+              onClick={title === t('onboarding.transcriptionEngine') ? handleRetryDownload : handleRetrySummaryDownload}
               className="mt-3 w-full h-9 px-4 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-md transition-colors flex items-center justify-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                       d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
-              Try Again
+              {t('import.tryAgain')}
             </button>
           )}
         </div>
@@ -490,8 +492,8 @@ export function DownloadProgressStep() {
 
   return (
     <OnboardingContainer
-      title="Getting things ready"
-      description="You can start using Meetily after downloading the Transcription Engine."
+      title={t('onboarding.gettingReady')}
+      description={t('onboarding.gettingReadyDescription')}
       step={3}
       totalSteps={isMac ? 4 : 3}
     >
@@ -499,14 +501,14 @@ export function DownloadProgressStep() {
         {/* Download Cards */}
         <div className="w-full max-w-lg space-y-4">
           {renderDownloadCard(
-            'Transcription Engine',
+            t('onboarding.transcriptionEngine'),
             <Mic className="w-5 h-5 text-gray-600" />,
             parakeetState,
             '~670 MB'
           )}
 
           {renderDownloadCard(
-            'Summary Engine',
+            t('onboarding.summaryEngine'),
             <Sparkles className="w-5 h-5 text-gray-600" />,
             summaryState,
             getSummaryModelSizeLabel(selectedSummaryModel || recommendedSummaryModel),
@@ -527,9 +529,9 @@ export function DownloadProgressStep() {
               <div className="flex items-start gap-3">
                 <Download className="w-5 h-5 text-gray-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium">You can continue while this finishes</p>
+                  <p className="font-medium">{t('onboarding.continueWhileDownloading')}</p>
                   <p className="text-gray-700 mt-1">
-                    Download will continue in the background.
+                    {t('onboarding.backgroundDownload')}
                   </p>
                 </div>
               </div>
@@ -547,7 +549,7 @@ export function DownloadProgressStep() {
             {(isCompleting || !parakeetDownloaded) ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             ) : (
-              'Continue'
+              t('onboarding.continue')
             )}
           </Button>
         </div>

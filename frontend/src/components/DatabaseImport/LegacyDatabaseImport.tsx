@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Loader2, FolderOpen, Database, CheckCircle2, XCircle } from 'lucide-react';
 import { HomebrewDatabaseDetector } from './HomebrewDatabaseDetector';
+import { useI18n } from '@/i18n';
 
 interface LegacyDatabaseImportProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ interface LegacyDatabaseImportProps {
 type ImportState = 'idle' | 'selecting' | 'detecting' | 'importing' | 'success' | 'error';
 
 export function LegacyDatabaseImport({ isOpen, onComplete }: LegacyDatabaseImportProps) {
+  const { t } = useI18n();
   const [importState, setImportState] = useState<ImportState>('idle');
   const [detectedPath, setDetectedPath] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -119,9 +121,9 @@ export function LegacyDatabaseImport({ isOpen, onComplete }: LegacyDatabaseImpor
     <Dialog open={isOpen} onOpenChange={() => {}}>
       <DialogContent className="sm:max-w-[600px]" onPointerDownOutside={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle className="text-2xl">Welcome to Meetily!</DialogTitle>
+          <DialogTitle className="text-2xl">{t('database.legacyWelcome')}</DialogTitle>
           <DialogDescription className="text-base pt-2">
-            Do you have data from a previous Meetily installation?
+            {t('database.legacyQuestion')}
           </DialogDescription>
         </DialogHeader>
 
@@ -135,7 +137,7 @@ export function LegacyDatabaseImport({ isOpen, onComplete }: LegacyDatabaseImpor
           {/* Browse Section */}
           <div className="space-y-3">
             <p className="text-sm text-gray-600">
-              Select your previous Meetily folder, backend directory, or database file:
+              {t('database.selectFolder')}
             </p>
 
             <button
@@ -151,7 +153,7 @@ export function LegacyDatabaseImport({ isOpen, onComplete }: LegacyDatabaseImpor
               ) : (
                 <>
                   <FolderOpen className="h-5 w-5" />
-                  <span>Browse for Database</span>
+                  <span>{t('database.browseDatabase')}</span>
                 </>
               )}
             </button>
@@ -163,7 +165,7 @@ export function LegacyDatabaseImport({ isOpen, onComplete }: LegacyDatabaseImpor
               <div className="flex items-start gap-2">
                 <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-green-800">Database found!</p>
+                  <p className="text-sm font-medium text-green-800">{t('database.databaseFound')}</p>
                   <p className="text-xs text-green-700 mt-1 break-all">{detectedPath}</p>
                 </div>
               </div>
@@ -192,17 +194,17 @@ export function LegacyDatabaseImport({ isOpen, onComplete }: LegacyDatabaseImpor
               {importState === 'importing' ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  <span>Importing...</span>
+                  <span>{t('database.importingLegacy')}</span>
                 </>
               ) : importState === 'success' ? (
                 <>
                   <CheckCircle2 className="h-5 w-5" />
-                  <span>Success!</span>
+                  <span>{t('database.successLegacy')}</span>
                 </>
               ) : (
                 <>
                   <Database className="h-5 w-5" />
-                  <span>Import Database</span>
+                  <span>{t('database.importDatabase')}</span>
                 </>
               )}
             </button>
@@ -212,7 +214,7 @@ export function LegacyDatabaseImport({ isOpen, onComplete }: LegacyDatabaseImpor
                 <div className="w-full border-t border-gray-300"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">or</span>
+                <span className="px-2 bg-white text-gray-500">{t('database.or')}</span>
               </div>
             </div>
 
@@ -221,7 +223,7 @@ export function LegacyDatabaseImport({ isOpen, onComplete }: LegacyDatabaseImpor
               disabled={isLoading}
               className="w-full px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
             >
-              Start Fresh (No Import)
+              {t('database.startFreshLegacy')}
             </button>
           </div>
         </div>

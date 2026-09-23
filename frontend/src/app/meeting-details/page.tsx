@@ -10,6 +10,7 @@ import { LoaderIcon } from "lucide-react";
 import { useConfig } from "@/contexts/ConfigContext";
 import { usePaginatedTranscripts } from "@/hooks/usePaginatedTranscripts";
 import { parseSummaryContent } from "@/lib/summary-content";
+import { useI18n } from '@/i18n';
 
 interface MeetingDetailsResponse {
   id: string;
@@ -21,6 +22,7 @@ interface MeetingDetailsResponse {
 }
 
 function MeetingDetailsContent() {
+  const { t } = useI18n();
   const searchParams = useSearchParams();
   const meetingId = searchParams.get('id');
   const source = searchParams.get('source'); // Check if navigated from recording
@@ -256,7 +258,7 @@ function MeetingDetailsContent() {
             onClick={() => router.push('/')}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
-            Go Back
+            {t('common.goBack')}
           </button>
         </div>
       </div>
