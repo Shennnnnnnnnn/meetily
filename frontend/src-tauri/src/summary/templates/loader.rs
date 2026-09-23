@@ -29,6 +29,37 @@ fn get_custom_templates_dir() -> Option<PathBuf> {
     Some(path)
 }
 
+fn validate_template_id(template_id: &str) -> Result<(), String> {
+    if template_id.is_empty() || template_id.len() > 64 {
+        return Err("Template ID must be between 1 and 64 characters".to_string());
+    }
+    if !template_id
+        .chars()
+        .all(|ch| ch.is_ascii_alphanumeric() || ch == '_' || ch == '-')
+    {
+        return Err("Template ID may contain only letters, numbers, '_' and '-'".to_string());
+    }
+    Ok(())
+}
+
+/// Validate and save a user-owned custom template.
+pub fn save_custom_template(template_id: &str, json_content: &str) -> Result<Template, String> {
+    validate_template_id(template_id)?;
+    let template = validate_and_parse_template(json_content)?;
+    let custom_dir = get_custom_templates_dir()
+        .ok_or_else(|| "Unable to determine the application data directory".to_string())?;
+    std::fs::create_dir_all(&custom_dir)
+        .map_err(|e| format!("Failed to create custom templates directory: {}", e))?;
+    let target = custom_dir.join(format!("{}.json", template_id));
+    let temp = custom_dir.join(format!(".{}.json.tmp", template_id));
+    std::fs::write(&temp, json_content)
+        .map_err(|e| format!("Failed to write custom template: {}", e))?;
+    std::fs::rename(&temp, &target)
+        .map_err(|e| format!("Failed to finalize custom template: {}", e))?;
+    info!("Saved custom template '{}' to {:?}", template_id, target);
+    Ok(template)
+}
+
 /// Load a template from the bundled resources directory
 ///
 /// # Arguments

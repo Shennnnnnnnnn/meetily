@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { invoke as invokeTauri } from '@tauri-apps/api/core';
 import { toast } from 'sonner';
 import Analytics from '@/lib/analytics';
+import { useI18n } from '@/i18n';
 
 export function useTemplates() {
+  const { t } = useI18n();
   const [availableTemplates, setAvailableTemplates] = useState<Array<{
     id: string;
     name: string;
@@ -11,9 +13,7 @@ export function useTemplates() {
   }>>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<string>('standard_meeting');
 
-  // Fetch available templates on mount
-  useEffect(() => {
-    const fetchTemplates = async () => {
+  const fetchTemplates = useCallback(async () => {
       try {
         const templates = await invokeTauri('api_list_templates') as Array<{
           id: string;
@@ -25,18 +25,24 @@ export function useTemplates() {
       } catch (error) {
         console.error('Failed to fetch templates:', error);
       }
-    };
-    fetchTemplates();
   }, []);
+
+  // Fetch available templates on mount and after a custom template is saved.
+  useEffect(() => {
+    fetchTemplates();
+    const refresh = () => { void fetchTemplates(); };
+    window.addEventListener('summary-template-updated', refresh);
+    return () => window.removeEventListener('summary-template-updated', refresh);
+  }, [fetchTemplates]);
 
   // Handle template selection
   const handleTemplateSelection = useCallback((templateId: string, templateName: string) => {
     setSelectedTemplate(templateId);
-    toast.success('Template selected', {
-      description: `Using "${templateName}" template for summary generation`,
+    toast.success(t('summary.templateSelected'), {
+      description: t('summary.templateUsing', { template: templateName }),
     });
     Analytics.trackFeatureUsed('template_selected');
-  }, []);
+  }, [t]);
 
   return {
     availableTemplates,

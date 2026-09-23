@@ -11,9 +11,12 @@ import { useI18n } from '@/i18n';
 
 
 export interface TranscriptModelProps {
-    provider: 'localWhisper' | 'parakeet' | 'deepgram' | 'elevenLabs' | 'groq' | 'openai';
+    provider: 'localWhisper' | 'parakeet' | 'volcengine' | 'deepgram' | 'elevenLabs' | 'groq' | 'openai';
     model: string;
     apiKey?: string | null;
+    volcengineAppKey?: string | null;
+    volcengineResourceId?: string | null;
+    volcengineEndpoint?: string | null;
 }
 
 export interface TranscriptSettingsProps {
@@ -29,11 +32,24 @@ export function TranscriptSettings({ transcriptModelConfig, setTranscriptModelCo
     const [isApiKeyLocked, setIsApiKeyLocked] = useState<boolean>(true);
     const [isLockButtonVibrating, setIsLockButtonVibrating] = useState<boolean>(false);
     const [uiProvider, setUiProvider] = useState<TranscriptModelProps['provider']>(transcriptModelConfig.provider);
+    const [volcengineAppKey, setVolcengineAppKey] = useState(transcriptModelConfig.volcengineAppKey || '');
+    const [volcengineResourceId, setVolcengineResourceId] = useState(transcriptModelConfig.volcengineResourceId || 'volc.seedasr.sauc.duration');
+    const [volcengineEndpoint, setVolcengineEndpoint] = useState(transcriptModelConfig.volcengineEndpoint || 'wss://openspeech.bytedance.com/api/v3/sauc/bigmodel_nostream');
 
     // Sync uiProvider when backend config changes (e.g., after model selection or initial load)
     useEffect(() => {
         setUiProvider(transcriptModelConfig.provider);
-    }, [transcriptModelConfig.provider]);
+        setApiKey(transcriptModelConfig.apiKey || null);
+        setVolcengineAppKey(transcriptModelConfig.volcengineAppKey || '');
+        setVolcengineResourceId(transcriptModelConfig.volcengineResourceId || 'volc.seedasr.sauc.duration');
+        setVolcengineEndpoint(transcriptModelConfig.volcengineEndpoint || 'wss://openspeech.bytedance.com/api/v3/sauc/bigmodel_nostream');
+    }, [
+        transcriptModelConfig.provider,
+        transcriptModelConfig.apiKey,
+        transcriptModelConfig.volcengineAppKey,
+        transcriptModelConfig.volcengineResourceId,
+        transcriptModelConfig.volcengineEndpoint,
+    ]);
 
     useEffect(() => {
         if (transcriptModelConfig.provider === 'localWhisper' || transcriptModelConfig.provider === 'parakeet') {
@@ -60,7 +76,27 @@ export function TranscriptSettings({ transcriptModelConfig, setTranscriptModelCo
         groq: ['llama-3.3-70b-versatile'],
         openai: ['gpt-4o'],
     };
-    const requiresApiKey = transcriptModelConfig.provider === 'deepgram' || transcriptModelConfig.provider === 'elevenLabs' || transcriptModelConfig.provider === 'openai' || transcriptModelConfig.provider === 'groq';
+    const requiresApiKey = transcriptModelConfig.provider === 'volcengine' || transcriptModelConfig.provider === 'deepgram' || transcriptModelConfig.provider === 'elevenLabs' || transcriptModelConfig.provider === 'openai' || transcriptModelConfig.provider === 'groq';
+
+    const saveVolcengineConfig = async () => {
+        setTranscriptModelConfig({
+            ...transcriptModelConfig,
+            provider: 'volcengine',
+            model: 'bigmodel',
+            apiKey,
+            volcengineAppKey,
+            volcengineResourceId,
+            volcengineEndpoint,
+        });
+        await invoke('api_save_transcript_config', {
+            provider: 'volcengine',
+            model: 'bigmodel',
+            apiKey: apiKey || null,
+            volcengineAppKey,
+            volcengineResourceId,
+            volcengineEndpoint,
+        });
+    };
 
     const handleInputClick = () => {
         if (isApiKeyLocked) {
@@ -125,6 +161,7 @@ export function TranscriptSettings({ transcriptModelConfig, setTranscriptModelCo
                                 <SelectContent>
                                     <SelectItem value="parakeet">⚡ {t('transcription.parakeet')}</SelectItem>
                                     <SelectItem value="localWhisper">🏠 {t('transcription.whisper')}</SelectItem>
+                                    <SelectItem value="volcengine">☁️ {t('transcription.volcengine')}</SelectItem>
                                     {/* <SelectItem value="deepgram">☁️ Deepgram (Backup)</SelectItem>
                                     <SelectItem value="elevenLabs">☁️ ElevenLabs</SelectItem>
                                     <SelectItem value="groq">☁️ Groq</SelectItem>
@@ -132,7 +169,7 @@ export function TranscriptSettings({ transcriptModelConfig, setTranscriptModelCo
                                 </SelectContent>
                             </Select>
 
-                            {uiProvider !== 'localWhisper' && uiProvider !== 'parakeet' && (
+                            {uiProvider !== 'localWhisper' && uiProvider !== 'parakeet' && uiProvider !== 'volcengine' && (
                                 <Select
                                     value={transcriptModelConfig.model}
                                     onValueChange={(value) => {
@@ -171,6 +208,20 @@ export function TranscriptSettings({ transcriptModelConfig, setTranscriptModelCo
                                 onModelSelect={handleParakeetModelSelect}
                                 autoSave={true}
                             />
+                        </div>
+                    )}
+
+                    {uiProvider === 'volcengine' && (
+                        <div className="mt-6 space-y-3 rounded-lg border border-blue-200 bg-blue-50 p-4">
+                            <p className="text-sm font-medium text-blue-900">{t('transcription.volcengineTitle')}</p>
+                            <p className="text-xs text-blue-800">{t('transcription.volcengineDescription')}</p>
+                            <Input value={volcengineAppKey} onChange={(event) => setVolcengineAppKey(event.target.value)} placeholder={t('transcription.volcengineAppKey')} />
+                            <Input value={apiKey || ''} onChange={(event) => setApiKey(event.target.value)} type="password" placeholder={t('transcription.volcengineAccessKey')} />
+                            <Input value={volcengineResourceId} onChange={(event) => setVolcengineResourceId(event.target.value)} placeholder={t('transcription.volcengineResourceId')} />
+                            <Input value={volcengineEndpoint} onChange={(event) => setVolcengineEndpoint(event.target.value)} placeholder={t('transcription.volcengineEndpoint')} />
+                            <Button type="button" onClick={() => void saveVolcengineConfig()} disabled={!volcengineAppKey || !apiKey || !volcengineResourceId}>
+                                {t('transcription.saveVolcengine')}
+                            </Button>
                         </div>
                     )}
 
@@ -226,8 +277,6 @@ export function TranscriptSettings({ transcriptModelConfig, setTranscriptModelCo
         </div >
     )
 }
-
-
 
 
 

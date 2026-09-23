@@ -189,6 +189,45 @@ pub fn get_available_models() -> Vec<ModelDef> {
             sampling: SamplingParams::qwen35_summary(vec!["<|im_end|>".to_string()]),
             description: "High-quality Qwen 3.5 model for built-in summaries. Best local Qwen option in the current lineup.".to_string(),
         },
+        // Qwen3 1.7B - lightweight Chinese-capable tier.
+        ModelDef {
+            name: "qwen3:1.7b".to_string(),
+            display_name: "Qwen3 1.7B (Lightweight)".to_string(),
+            gguf_file: "Qwen3-1.7B-Q4_K_M.gguf".to_string(),
+            template: "qwen3_nonthinking".to_string(),
+            download_url: "https://huggingface.co/unsloth/Qwen3-1.7B-GGUF/resolve/main/Qwen3-1.7B-Q4_K_M.gguf".to_string(),
+            size_mb: 1056,
+            context_size: 40960,
+            layer_count: 28,
+            sampling: SamplingParams::qwen35_summary(vec!["<|im_end|>".to_string()]),
+            description: "Lightweight Qwen3 model with strong Chinese support for low-memory summaries.".to_string(),
+        },
+        // Qwen3 0.6B - ultra-lightweight fallback for low-memory machines.
+        ModelDef {
+            name: "qwen3:0.6b".to_string(),
+            display_name: "Qwen3 0.6B (Ultra Lightweight)".to_string(),
+            gguf_file: "Qwen3-0.6B-Q4_K_M.gguf".to_string(),
+            template: "qwen3_nonthinking".to_string(),
+            download_url: "https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q4_K_M.gguf".to_string(),
+            size_mb: 398,
+            context_size: 40960,
+            layer_count: 28,
+            sampling: SamplingParams::qwen35_summary(vec!["<|im_end|>".to_string()]),
+            description: "Ultra-lightweight Qwen3 model for Chinese summaries on machines with limited memory.".to_string(),
+        },
+        // Qwen3 4B - Chinese quality/speed tier.
+        ModelDef {
+            name: "qwen3:4b".to_string(),
+            display_name: "Qwen3 4B (Chinese Balanced)".to_string(),
+            gguf_file: "Qwen3-4B-Q4_K_M.gguf".to_string(),
+            template: "qwen3_nonthinking".to_string(),
+            download_url: "https://huggingface.co/unsloth/Qwen3-4B-GGUF/resolve/main/Qwen3-4B-Q4_K_M.gguf".to_string(),
+            size_mb: 2381,
+            context_size: 40960,
+            layer_count: 36,
+            sampling: SamplingParams::qwen35_summary(vec!["<|im_end|>".to_string()]),
+            description: "Chinese-focused Qwen3 model with a strong quality and memory trade-off.".to_string(),
+        },
         // Gemma 3 4B - Legacy alternative retained for users who prefer Gemma output.
         ModelDef {
             name: "gemma3:4b".to_string(),
@@ -275,6 +314,9 @@ pub const QWEN35_NONTHINKING_TEMPLATE: &str = "\
 
 ";
 
+/// Qwen3 uses the same ChatML control tokens as Qwen3.5 for direct summaries.
+pub const QWEN3_NONTHINKING_TEMPLATE: &str = QWEN35_NONTHINKING_TEMPLATE;
+
 fn escape_user_prompt_control_markers(user_prompt: &str) -> String {
     user_prompt
         .replace("<|im_start|>", "< |im_start| >")
@@ -302,6 +344,7 @@ pub fn format_prompt(
     let template = match template_name {
         "gemma3" => GEMMA3_TEMPLATE,
         "qwen3.5_nonthinking" => QWEN35_NONTHINKING_TEMPLATE,
+        "qwen3_nonthinking" => QWEN3_NONTHINKING_TEMPLATE,
         _ => return Err(anyhow!("Unknown template: {}", template_name)),
     };
 
@@ -361,6 +404,30 @@ mod tests {
     }
 
     #[test]
+    fn qwen3_lightweight_models_are_registered_with_official_gguf_metadata() {
+        let qwen_06b = get_model_by_name("qwen3:0.6b").expect("qwen 0.6b model should exist");
+        assert_eq!(qwen_06b.gguf_file, "Qwen3-0.6B-Q4_K_M.gguf");
+        assert_eq!(qwen_06b.template, "qwen3_nonthinking");
+        assert_eq!(qwen_06b.size_mb, 398);
+        assert_eq!(qwen_06b.context_size, 40960);
+        assert_eq!(qwen_06b.layer_count, 28);
+
+        let qwen_17b = get_model_by_name("qwen3:1.7b").expect("qwen 1.7b model should exist");
+        assert_eq!(qwen_17b.gguf_file, "Qwen3-1.7B-Q4_K_M.gguf");
+        assert_eq!(qwen_17b.template, "qwen3_nonthinking");
+        assert_eq!(qwen_17b.size_mb, 1056);
+        assert_eq!(qwen_17b.context_size, 40960);
+        assert_eq!(qwen_17b.layer_count, 28);
+
+        let qwen_4b = get_model_by_name("qwen3:4b").expect("qwen 4b model should exist");
+        assert_eq!(qwen_4b.gguf_file, "Qwen3-4B-Q4_K_M.gguf");
+        assert_eq!(qwen_4b.template, "qwen3_nonthinking");
+        assert_eq!(qwen_4b.size_mb, 2381);
+        assert_eq!(qwen_4b.context_size, 40960);
+        assert_eq!(qwen_4b.layer_count, 36);
+    }
+
+    #[test]
     fn gemma_models_use_huggingface_urls_and_gemma3_instruct_sampling() {
         let gemma_1b = get_model_by_name("gemma3:1b").expect("gemma 1b model should exist");
         assert_eq!(gemma_1b.gguf_file, "gemma-3-1b-it-Q8_0.gguf");
@@ -399,6 +466,14 @@ mod tests {
         assert!(formatted.contains("<|im_start|>system\nsystem rules<|im_end|>"));
         assert!(formatted.contains("<|im_start|>user\nsummarize this<|im_end|>"));
         assert!(formatted.ends_with("<think>\n\n</think>\n\n"));
+    }
+
+    #[test]
+    fn qwen3_nonthinking_template_formats_prompt() {
+        let formatted = format_prompt("qwen3_nonthinking", "system rules", "summarize this").unwrap();
+        assert!(formatted.contains("<|im_start|>system"));
+        assert!(formatted.contains("summarize this"));
+        assert!(formatted.contains("</think>"));
     }
 
     #[test]

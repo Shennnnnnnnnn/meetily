@@ -127,4 +127,13 @@ pub struct TranscriptSetting {
     #[sqlx(rename = "openaiApiKey")]
     #[serde(rename = "openaiApiKey")]
     pub openai_api_key: Option<String>,
+    #[sqlx(rename = "volcengineAppKey")]
+    #[serde(rename = "volcengineAppKey")]
+    pub volcengine_app_key: Option<String>,
+    #[sqlx(rename = "volcengineResourceId")]
+    #[serde(rename = "volcengineResourceId")]
+    pub volcengine_resource_id: Option<String>,
+    #[sqlx(rename = "volcengineEndpoint")]
+    #[serde(rename = "volcengineEndpoint")]
+    pub volcengine_endpoint: Option<String>,
 }

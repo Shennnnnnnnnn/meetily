@@ -43,7 +43,10 @@ export default function SettingsPage() {
           setTranscriptModelConfig({
             provider: config.provider || 'localWhisper',
             model: config.model || 'large-v3',
-            apiKey: config.apiKey || null
+            apiKey: config.apiKey || null,
+            volcengineAppKey: config.volcengineAppKey || null,
+            volcengineResourceId: config.volcengineResourceId || null,
+            volcengineEndpoint: config.volcengineEndpoint || null,
           });
         }
       } catch (error) {

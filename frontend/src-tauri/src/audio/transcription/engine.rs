@@ -74,6 +74,9 @@ pub async fn validate_transcription_model_ready<R: Runtime>(app: &AppHandle<R>) 
                 provider: "parakeet".to_string(),
                 model: crate::config::DEFAULT_PARAKEET_MODEL.to_string(),
                 api_key: None,
+                volcengine_app_key: None,
+                volcengine_resource_id: None,
+                volcengine_endpoint: None,
             }
         }
         Err(e) => {
@@ -82,6 +85,9 @@ pub async fn validate_transcription_model_ready<R: Runtime>(app: &AppHandle<R>) 
                 provider: "parakeet".to_string(),
                 model: crate::config::DEFAULT_PARAKEET_MODEL.to_string(),
                 api_key: None,
+                volcengine_app_key: None,
+                volcengine_resource_id: None,
+                volcengine_endpoint: None,
             }
         }
     };
@@ -135,6 +141,15 @@ pub async fn validate_transcription_model_ready<R: Runtime>(app: &AppHandle<R>) 
                 }
             }
         }
+        "volcengine" => {
+            if config.api_key.as_deref().unwrap_or_default().trim().is_empty()
+                || config.volcengine_app_key.as_deref().unwrap_or_default().trim().is_empty()
+                || config.volcengine_resource_id.as_deref().unwrap_or_default().trim().is_empty()
+            {
+                return Err("Volcengine ASR requires App Key, Access Token, and Resource ID".to_string());
+            }
+            Ok(())
+        }
         other => {
             warn!("❌ Unsupported transcription provider for local recording: {}", other);
             Err(format!(
@@ -170,6 +185,9 @@ pub async fn get_or_init_transcription_engine<R: Runtime>(
                 provider: "parakeet".to_string(),
                 model: crate::config::DEFAULT_PARAKEET_MODEL.to_string(),
                 api_key: None,
+                volcengine_app_key: None,
+                volcengine_resource_id: None,
+                volcengine_endpoint: None,
             }
         }
         Err(e) => {
@@ -178,6 +196,9 @@ pub async fn get_or_init_transcription_engine<R: Runtime>(
                 provider: "parakeet".to_string(),
                 model: crate::config::DEFAULT_PARAKEET_MODEL.to_string(),
                 api_key: None,
+                volcengine_app_key: None,
+                volcengine_resource_id: None,
+                volcengine_endpoint: None,
             }
         }
     };
@@ -211,6 +232,17 @@ pub async fn get_or_init_transcription_engine<R: Runtime>(
                     Err("Parakeet engine not initialized. This should not happen after validation.".to_string())
                 }
             }
+        }
+        "volcengine" => {
+            let provider = crate::audio::transcription::VolcengineProvider::new(
+                config.volcengine_app_key.unwrap_or_default(),
+                config.api_key.unwrap_or_default(),
+                config.volcengine_resource_id.unwrap_or_default(),
+                config.volcengine_endpoint,
+                config.model,
+            )
+            .map_err(|error| error.to_string())?;
+            Ok(TranscriptionEngine::Provider(Arc::new(provider)))
         }
         "localWhisper" | _ => {
             info!("🎤 Initializing Whisper transcription engine");

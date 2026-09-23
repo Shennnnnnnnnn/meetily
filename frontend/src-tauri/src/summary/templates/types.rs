@@ -75,7 +75,11 @@ impl Template {
         let mut markdown = String::from("# <Add Title here>\n\n");
 
         for section in &self.sections {
-            markdown.push_str(&format!("**{}**\n\n", section.title));
+            match section.format.as_str() {
+                "list" => markdown.push_str(&format!("**{}**\n\n- [item]\n\n", section.title)),
+                "string" => markdown.push_str(&format!("**{}:** [value]\n\n", section.title)),
+                _ => markdown.push_str(&format!("**{}**\n\n[paragraph]\n\n", section.title)),
+            }
         }
 
         markdown
@@ -91,6 +95,16 @@ impl Template {
             instructions.push_str(&format!(
                 "- **For the '{}' section:** {}.\n",
                 section.title, section.instruction
+            ));
+
+            let format_instruction = match section.format.as_str() {
+                "list" => "write one Markdown bullet per item",
+                "string" => "write one concise value on the heading line after the colon",
+                _ => "write one or more prose paragraphs under the heading",
+            };
+            instructions.push_str(&format!(
+                "  - **Output format:** {}.\n",
+                format_instruction
             ));
 
             // Add item format instructions if present
@@ -160,5 +174,46 @@ mod tests {
         };
 
         assert!(template.validate().is_err());
+    }
+
+    #[test]
+    fn markdown_structure_and_instructions_honor_section_formats() {
+        let template = Template {
+            name: "Formats".to_string(),
+            description: "Format coverage".to_string(),
+            sections: vec![
+                TemplateSection {
+                    title: "Summary".to_string(),
+                    instruction: "Capture the main point".to_string(),
+                    format: "paragraph".to_string(),
+                    item_format: None,
+                    example_item_format: None,
+                },
+                TemplateSection {
+                    title: "Actions".to_string(),
+                    instruction: "Capture tasks".to_string(),
+                    format: "list".to_string(),
+                    item_format: None,
+                    example_item_format: None,
+                },
+                TemplateSection {
+                    title: "Date".to_string(),
+                    instruction: "Use YYYY-MM-DD".to_string(),
+                    format: "string".to_string(),
+                    item_format: None,
+                    example_item_format: None,
+                },
+            ],
+        };
+
+        let markdown = template.to_markdown_structure();
+        assert!(markdown.contains("**Summary**\n\n[paragraph]"));
+        assert!(markdown.contains("**Actions**\n\n- [item]"));
+        assert!(markdown.contains("**Date:** [value]"));
+
+        let instructions = template.to_section_instructions();
+        assert!(instructions.contains("one or more prose paragraphs"));
+        assert!(instructions.contains("one Markdown bullet per item"));
+        assert!(instructions.contains("one concise value on the heading line"));
     }
 }

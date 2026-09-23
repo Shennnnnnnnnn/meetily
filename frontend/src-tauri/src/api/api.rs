@@ -101,6 +101,12 @@ pub struct TranscriptConfig {
     pub model: String,
     #[serde(rename = "apiKey")]
     pub api_key: Option<String>,
+    #[serde(rename = "volcengineAppKey")]
+    pub volcengine_app_key: Option<String>,
+    #[serde(rename = "volcengineResourceId")]
+    pub volcengine_resource_id: Option<String>,
+    #[serde(rename = "volcengineEndpoint")]
+    pub volcengine_endpoint: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -619,6 +625,9 @@ pub async fn api_get_transcript_config<R: Runtime>(
                         provider: config.provider,
                         model: config.model,
                         api_key,
+                        volcengine_app_key: config.volcengine_app_key,
+                        volcengine_resource_id: config.volcengine_resource_id,
+                        volcengine_endpoint: config.volcengine_endpoint,
                     }))
                 }
                 Err(e) => {
@@ -637,6 +646,9 @@ pub async fn api_get_transcript_config<R: Runtime>(
                 provider: "parakeet".to_string(),
                 model: crate::config::DEFAULT_PARAKEET_MODEL.to_string(),
                 api_key: None,
+                volcengine_app_key: None,
+                volcengine_resource_id: None,
+                volcengine_endpoint: None,
             }))
         }
         Err(e) => {
@@ -653,6 +665,9 @@ pub async fn api_save_transcript_config<R: Runtime>(
     provider: String,
     model: String,
     api_key: Option<String>,
+    volcengine_app_key: Option<String>,
+    volcengine_resource_id: Option<String>,
+    volcengine_endpoint: Option<String>,
     _auth_token: Option<String>,
 ) -> Result<serde_json::Value, String> {
     log_info!(
@@ -675,6 +690,20 @@ pub async fn api_save_transcript_config<R: Runtime>(
                 return Err(e.to_string());
             }
         }
+    }
+
+    if provider == "volcengine" {
+        sqlx::query(
+            r#"UPDATE transcript_settings
+               SET volcengineAppKey = $1, volcengineResourceId = $2, volcengineEndpoint = $3
+               WHERE id = '1'"#,
+        )
+        .bind(volcengine_app_key)
+        .bind(volcengine_resource_id)
+        .bind(volcengine_endpoint)
+        .execute(pool)
+        .await
+        .map_err(|e| format!("Failed to save Volcengine ASR settings: {}", e))?;
     }
 
     log_info!("Successfully saved transcript configuration.");
