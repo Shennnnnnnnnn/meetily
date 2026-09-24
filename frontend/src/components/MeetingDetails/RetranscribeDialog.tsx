@@ -24,6 +24,7 @@ import { LANGUAGES } from '@/constants/languages';
 import { useTranscriptionModels, ModelOption } from '@/hooks/useTranscriptionModels';
 import Analytics from '@/lib/analytics';
 import { useI18n } from '@/i18n';
+import { localizeProgressMessage, localizeProgressStage } from '@/lib/progress-message';
 
 interface RetranscribeDialogProps {
   open: boolean;
@@ -65,6 +66,9 @@ export function RetranscribeDialog({
   const [progress, setProgress] = useState<RetranscriptionProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedLang, setSelectedLang] = useState(selectedLanguage || 'auto');
+  const localizedProgressMessage = progress
+    ? localizeProgressMessage(t, 'retranscribe', progress.message)
+    : '';
 
   // Use centralized model fetching hook
   const {
@@ -303,7 +307,7 @@ export function RetranscribeDialog({
           </DialogTitle>
           <DialogDescription>
             {isProcessing
-              ? progress?.message || t('retranscribe.processingAudio')
+              ? localizedProgressMessage || t('retranscribe.processingAudio')
               : error
                 ? t('retranscribe.errorDescription')
                 : t('retranscribe.description')}
@@ -381,12 +385,12 @@ export function RetranscribeDialog({
                   />
                 </div>
                 <div className="flex justify-between text-xs text-gray-600 mt-1">
-                  <span>{progress.stage}</span>
+                  <span>{localizeProgressStage(t, 'retranscribe', progress.stage)}</span>
                   <span>{Math.round(progress.progress_percentage)}%</span>
                 </div>
               </div>
               <p className="text-sm text-muted-foreground text-center">
-                {progress.message}
+                {localizedProgressMessage}
               </p>
             </div>
           )}

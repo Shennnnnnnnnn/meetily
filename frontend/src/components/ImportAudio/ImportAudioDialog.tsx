@@ -38,6 +38,7 @@ import { useSidebar } from '../Sidebar/SidebarProvider';
 import { LANGUAGES } from '@/constants/languages';
 import { useTranscriptionModels, ModelOption } from '@/hooks/useTranscriptionModels';
 import { useI18n } from '@/i18n';
+import { localizeProgressMessage, localizeProgressStage } from '@/lib/progress-message';
 
 
 interface ImportAudioDialogProps {
@@ -126,6 +127,10 @@ export function ImportAudioDialog({
     onComplete: handleImportComplete,
     onError: handleImportError,
   });
+
+  const localizedProgressMessage = progress
+    ? localizeProgressMessage(t, 'import', progress.message)
+    : '';
 
   // Reset state only when dialog transitions from closed to open
   // This prevents re-initialization when config changes while dialog is already open (Bug #4 & #5)
@@ -268,7 +273,7 @@ export function ImportAudioDialog({
           </DialogTitle>
           <DialogDescription>
             {isProcessing
-              ? progress?.message || t('import.processing')
+              ? localizedProgressMessage || t('import.processing')
               : error
               ? t('import.errorDescription')
               : t('import.description')}
@@ -431,11 +436,11 @@ export function ImportAudioDialog({
                   />
                 </div>
                 <div className="flex justify-between text-xs text-gray-600 mt-1">
-                  <span>{progress.stage}</span>
+                  <span>{localizeProgressStage(t, 'import', progress.stage)}</span>
                   <span>{Math.round(progress.progress_percentage)}%</span>
                 </div>
               </div>
-              <p className="text-sm text-muted-foreground text-center">{progress.message}</p>
+              <p className="text-sm text-muted-foreground text-center">{localizedProgressMessage}</p>
             </div>
           )}
 

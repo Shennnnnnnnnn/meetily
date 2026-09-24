@@ -40,6 +40,14 @@ const forbiddenByFile = {
     'Model downloaded and ready to use',
     'The download is still shutting down.',
   ],
+  'src/components/ImportAudio/ImportAudioDialog.tsx': [
+    '{progress.message}',
+    'progress?.message ||',
+  ],
+  'src/components/MeetingDetails/RetranscribeDialog.tsx': [
+    '{progress.message}',
+    'progress?.message ||',
+  ],
 };
 
 test('core meeting UI does not render known hard-coded English strings', () => {
