@@ -30,6 +30,16 @@ const forbiddenByFile = {
     '>AI Model<',
     '>Template<',
   ],
+  'src/components/WhisperModelManager.tsx': [
+    'This may take a few minutes',
+    'Model downloaded and ready to use',
+    'The download is still shutting down.',
+  ],
+  'src/components/ParakeetModelManager.tsx': [
+    'This may take a few minutes',
+    'Model downloaded and ready to use',
+    'The download is still shutting down.',
+  ],
 };
 
 test('core meeting UI does not render known hard-coded English strings', () => {
@@ -44,4 +54,3 @@ test('core meeting UI does not render known hard-coded English strings', () => {
 
   assert.deepEqual(failures, []);
 });
-

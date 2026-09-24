@@ -30,6 +30,11 @@ pub async fn initialize_database_on_startup(app: &AppHandle) -> Result<(), Strin
             .await
             .map_err(|e| format!("Failed to initialize database manager: {}", e))?;
 
+        if let Ok(proxy) = crate::database::repositories::setting::SettingsRepository::get_download_proxy(db_manager.pool()).await {
+            if let Err(error) = crate::network::set_download_proxy(proxy.as_deref()) {
+                log::warn!("Ignoring invalid saved download proxy: {}", error);
+            }
+        }
         app.manage(AppState { db_manager });
         info!("Database initialized successfully");
     }

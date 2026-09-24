@@ -42,6 +42,7 @@ pub mod config;
 pub mod console_utils;
 pub mod database;
 pub mod notifications;
+pub mod network;
 pub mod ollama;
 pub mod onboarding;
 pub mod openai;
@@ -718,6 +719,8 @@ pub fn run() {
             api::api_save_profile,
             api::api_update_profile,
             api::api_get_model_config,
+            api::api_get_download_proxy,
+            api::api_save_download_proxy,
             api::api_save_model_config,
             api::api_get_api_key,
             // api::api_get_auto_generate_setting,

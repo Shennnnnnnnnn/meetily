@@ -862,7 +862,7 @@ impl ParakeetEngine {
             .await
             .map_err(|error| anyhow!("Failed to create model directory: {}", error))?;
 
-        let client = reqwest::Client::builder()
+        let client = crate::network::configure_download_client(reqwest::Client::builder())?
             .tcp_nodelay(true)
             .pool_max_idle_per_host(1)
             .timeout(Duration::from_secs(3600))

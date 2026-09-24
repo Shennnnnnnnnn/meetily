@@ -520,6 +520,33 @@ pub async fn api_get_model_config<R: Runtime>(
 }
 
 #[tauri::command]
+pub async fn api_get_download_proxy<R: Runtime>(
+    _app: AppHandle<R>,
+    state: tauri::State<'_, AppState>,
+) -> Result<Option<String>, String> {
+    SettingsRepository::get_download_proxy(state.db_manager.pool())
+        .await
+        .map_err(|error| format!("Failed to load download proxy: {}", error))
+}
+
+#[tauri::command]
+pub async fn api_save_download_proxy<R: Runtime>(
+    _app: AppHandle<R>,
+    state: tauri::State<'_, AppState>,
+    proxy: Option<String>,
+) -> Result<Option<String>, String> {
+    let normalized = crate::network::set_download_proxy(proxy.as_deref())
+        .map_err(|error| error.to_string())?;
+    SettingsRepository::save_download_proxy(
+        state.db_manager.pool(),
+        normalized.as_deref(),
+    )
+    .await
+    .map_err(|error| format!("Failed to save download proxy: {}", error))?;
+    Ok(normalized)
+}
+
+#[tauri::command]
 pub async fn api_save_model_config<R: Runtime>(
     _app: AppHandle<R>,
     state: tauri::State<'_, AppState>,

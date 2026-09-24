@@ -1140,7 +1140,7 @@ impl WhisperEngine {
             }
         }
 
-        let client = Client::builder()
+        let client = crate::network::configure_download_client(Client::builder())?
             .user_agent(concat!("Meetily/", env!("CARGO_PKG_VERSION")))
             .build()
             .map_err(|e| anyhow!("Failed to create download client: {}", e))?;

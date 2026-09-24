@@ -96,6 +96,9 @@ pub struct Setting {
     #[sqlx(rename = "customOpenAIConfig")]
     #[serde(rename = "customOpenAIConfig")]
     pub custom_openai_config: Option<String>,
+    #[sqlx(rename = "downloadProxy")]
+    #[serde(rename = "downloadProxy")]
+    pub download_proxy: Option<String>,
 }
 
 impl Setting {

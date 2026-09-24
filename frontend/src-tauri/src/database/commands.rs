@@ -161,6 +161,11 @@ pub async fn import_and_initialize_database(
         })?;
 
     // Update app state with the new manager
+    if let Ok(proxy) = crate::database::repositories::setting::SettingsRepository::get_download_proxy(db_manager.pool()).await {
+        if let Err(error) = crate::network::set_download_proxy(proxy.as_deref()) {
+            error!("Ignoring invalid saved download proxy: {}", error);
+        }
+    }
     app.manage(AppState { db_manager });
 
     info!("Legacy database imported and initialized successfully");

@@ -470,7 +470,7 @@ impl ModelManager {
         };
 
         // Download the file with optimized client settings
-        let client = Client::builder()
+        let client = crate::network::configure_download_client(Client::builder())?
             .tcp_nodelay(true) // Disable Nagle's algorithm for faster streaming
             .pool_max_idle_per_host(1) // Keep connection alive
             .timeout(Duration::from_secs(3600)) // 1 hour timeout for large files

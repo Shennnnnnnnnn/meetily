@@ -67,6 +67,27 @@ impl SettingsRepository {
         Ok(())
     }
 
+    pub async fn get_download_proxy(
+        pool: &SqlitePool,
+    ) -> std::result::Result<Option<String>, sqlx::Error> {
+        sqlx::query_scalar("SELECT downloadProxy FROM settings WHERE id = '1' LIMIT 1")
+            .fetch_optional(pool)
+            .await
+    }
+
+    pub async fn save_download_proxy(
+        pool: &SqlitePool,
+        proxy: Option<&str>,
+    ) -> std::result::Result<(), sqlx::Error> {
+        sqlx::query(
+            "INSERT INTO settings (id, provider, model, whisperModel, downloadProxy) VALUES ('1', 'builtin-ai', 'qwen3.5:2b', 'large-v3', $1) ON CONFLICT(id) DO UPDATE SET downloadProxy = excluded.downloadProxy",
+        )
+        .bind(proxy)
+        .execute(pool)
+        .await?;
+        Ok(())
+    }
+
     pub async fn save_api_key(
         pool: &SqlitePool,
         provider: &str,

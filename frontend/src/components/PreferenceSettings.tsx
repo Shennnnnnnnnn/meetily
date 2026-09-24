@@ -2,13 +2,16 @@
 
 import { useEffect, useState, useRef } from "react"
 import { Switch } from "./ui/switch"
-import { FolderOpen } from "lucide-react"
+import { FolderOpen, Save, X } from "lucide-react"
 import { invoke } from "@tauri-apps/api/core"
 import Analytics from "@/lib/analytics"
+import { toast } from 'sonner'
 import AnalyticsConsentSwitch from "./AnalyticsConsentSwitch"
 import { useConfig, NotificationSettings } from "@/contexts/ConfigContext"
 import { LocaleSwitcher } from './LocaleSwitcher'
 import { useI18n } from '@/i18n'
+import { Input } from './ui/input'
+import { Button } from './ui/button'
 
 export function PreferenceSettings() {
   const { t } = useI18n();
@@ -23,6 +26,9 @@ export function PreferenceSettings() {
   const [notificationsEnabled, setNotificationsEnabled] = useState<boolean | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [previousNotificationsEnabled, setPreviousNotificationsEnabled] = useState<boolean | null>(null);
+  const [downloadProxy, setDownloadProxy] = useState('');
+  const [isProxyLoading, setIsProxyLoading] = useState(true);
+  const [isProxySaving, setIsProxySaving] = useState(false);
   const hasTrackedViewRef = useRef(false);
 
   // Lazy load preferences on mount (only loads if not already cached)
@@ -31,6 +37,39 @@ export function PreferenceSettings() {
     // Reset tracking ref on mount (every tab visit)
     hasTrackedViewRef.current = false;
   }, [loadPreferences]);
+
+  useEffect(() => {
+    let mounted = true;
+    invoke<string | null>('api_get_download_proxy')
+      .then((proxy) => {
+        if (mounted) setDownloadProxy(proxy || '');
+      })
+      .catch((error) => console.error('Failed to load download proxy:', error))
+      .finally(() => {
+        if (mounted) setIsProxyLoading(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleSaveDownloadProxy = async () => {
+    setIsProxySaving(true);
+    try {
+      const saved = await invoke<string | null>('api_save_download_proxy', {
+        proxy: downloadProxy.trim() || null,
+      });
+      setDownloadProxy(saved || '');
+      toast.success(t('settings.networkProxySaved'));
+    } catch (error) {
+      console.error('Failed to save download proxy:', error);
+      toast.error(t('settings.networkProxySaveFailed'), {
+        description: error instanceof Error ? error.message : String(error),
+      });
+    } finally {
+      setIsProxySaving(false);
+    }
+  };
 
   // Track preferences viewed analytics on every tab visit (once per mount)
   useEffect(() => {
@@ -153,6 +192,51 @@ export function PreferenceSettings() {
     <div className="space-y-6">
       <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
         <LocaleSwitcher />
+      </div>
+
+      {/* Network and model download settings */}
+      <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('settings.network')}</h3>
+            <p className="text-sm text-gray-600">{t('settings.networkDescription')}</p>
+          </div>
+          <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-500">
+            {t('settings.downloadsOnly')}
+          </span>
+        </div>
+        <div className="mt-5 space-y-2">
+          <label htmlFor="download-proxy" className="text-sm font-medium text-gray-700">
+            {t('settings.downloadProxy')}
+          </label>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Input
+              id="download-proxy"
+              value={downloadProxy}
+              disabled={isProxyLoading || isProxySaving}
+              onChange={(event) => setDownloadProxy(event.target.value)}
+              placeholder={t('settings.downloadProxyPlaceholder')}
+              className="font-mono text-sm"
+            />
+            <div className="flex gap-2">
+              <Button type="button" onClick={() => void handleSaveDownloadProxy()} disabled={isProxyLoading || isProxySaving}>
+                <Save className="mr-2 h-4 w-4" />
+                {isProxySaving ? t('settings.saving') : t('settings.save')}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                title={t('settings.clear')}
+                aria-label={t('settings.clear')}
+                onClick={() => setDownloadProxy('')}
+                disabled={isProxyLoading || isProxySaving || !downloadProxy}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          <p className="text-xs text-gray-500">{t('settings.downloadProxyHint')}</p>
+        </div>
       </div>
 
       {/* Notifications Section */}
